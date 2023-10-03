@@ -1,0 +1,17 @@
+AUTHENTICATION_METHOD_USER_PASS = "userpass"
+AUTHENTICATION_METHOD_APPROLE = "approle"
+API_V1 = "/v1"
+AUTHENTICATION_APPROLE_PATH = "/v1/auth/approle/login"
+AUTHENTICATION_USERPASS_PATH = "/v1/auth/userpass/login"
+VAULT_TOKEN_HEADER = "X-Vault-Token"
+
+LISTING_SECRETS_ENGINES_PATH = "/v1/sys/internal/ui/mounts"
+SECRETS_ENGINES_FIELD = "secret"
+IDENTITY_ROUTE = "identity/"
+SYS_ROUTE = "sys/"
+
+SECRET_ENGINE_KV = "kv"
+SECRET_ENGINE_KVV1 = "kvv1"
+SECRET_ENGINE_KVV2 = "kvv2"
+SECRET_ENGINE_CUBBYHOLE = "cubbyhole"
+

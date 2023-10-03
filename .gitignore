@@ -1,0 +1,4 @@
+*.plantuml
+*.pyc
+__pycache__/
+sscrawl_files/
