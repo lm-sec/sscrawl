@@ -14,4 +14,7 @@ class SSNode:
         super()
 
     def plantuml_encode(self, string: str) -> str:
+        if not isinstance(string, str):
+            string = str(string)
+            
         return string.replace("/", "_slash_")

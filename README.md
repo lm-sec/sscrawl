@@ -5,7 +5,7 @@ A multi-threaded Secret Server Crawler. It uses the initial credentials to conne
 ## Supported Servers
 
 * Delinea Secret Server (formerly Thycotic)
-* Hashicorp Vault
+* HashiCorp Vault
 
 ## Help
 

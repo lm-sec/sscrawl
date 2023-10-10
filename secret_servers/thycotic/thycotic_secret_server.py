@@ -100,7 +100,7 @@ class ThycoticSecretServer(SecretServer):
         # Get secret details :
         # GET /api/v1/secrets/{secretId}
         for secret in secret_items:
-            response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret}", verify=False, proxies=self.proxies)
+            response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}", verify=False, proxies=self.proxies)
             if response.status_code == 401 or ('errorCode' in response.json() and response.json()["errorCode"] == "API_AccessDenied"):
                 self.logger.console_logger.debug(f"Access denied for secret id {secret.unique_id}")
                 new_node = SSNode(secret.unique_id)
