@@ -7,9 +7,7 @@ import requests
 import os
 import urllib3
 import logging
-import threading
 import numpy as np
-import copy
 from secret_servers.authentication_method_not_supported_exception import AuthenticationMethodNotSupportedException
 from secret_servers.get_secrets_thread import GetSecretsThread
 from secret_servers.hashicorp_vault.hashicorp_vault_secret_server import HashicorpVaultSecretServer
@@ -114,7 +112,8 @@ def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, s
             d = GLOBAL_DOMAIN
             if child.domain:
                 d = child.domain
-            get_secrets(d, child.username, child.password, False, out_folder, out_file, child, found_history, recursive, thread_count, secret_server)
+            get_secrets(d, child.username, child.password, proxies, False, is_secure, out_folder, out_file, child, 
+                        found_history, recursive, thread_count, secret_server)
 
 def node_name(node: SSNode, parentId: str):
     return f"{parentId}{node.id}"
@@ -234,9 +233,6 @@ if args.proxy is not None:
 if not args.pwd and not args.hash:
     logger.console_logger.error("At least --pwd or --hash must be provided")
     exit()
-
-print("TEST")
-print(args.insecure)
 
 pwd = args.pwd
 is_hash = False
