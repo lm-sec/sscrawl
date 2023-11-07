@@ -10,9 +10,8 @@ class SecretServer(object, metaclass=ABCMeta):
     authentication_methods: 'list[str]'
     
     @abstractmethod
-    def __init__(self, logger: SSCrawlLogger, proxies: 'dict[str, str]', url: str):
+    def __init__(self, logger: SSCrawlLogger, url: str):
         self.logger = logger
-        self.proxies = proxies
         self.url = url
 
     @abstractmethod

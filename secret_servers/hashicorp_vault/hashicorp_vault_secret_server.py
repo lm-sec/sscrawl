@@ -12,8 +12,8 @@ from utils.utils import Utils
 
 
 class HashicorpVaultSecretServer(SecretServer):
-    def __init__(self, logger: SSCrawlLogger, proxies, url: str, ):
-        super().__init__(logger, proxies, url)
+    def __init__(self, logger: SSCrawlLogger, url: str, ):
+        super().__init__(logger, url)
         self.authentication_methods = [AUTHENTICATION_METHOD_USER_PASS, AUTHENTICATION_METHOD_APPROLE]
 
     
@@ -34,7 +34,7 @@ class HashicorpVaultSecretServer(SecretServer):
             session.headers["Content-Type"] = "application/json"
             response = {}
             try:
-                response = session.post(f"{self.url}{AUTHENTICATION_USERPASS_PATH}/{username}", json=auth_data, proxies=self.proxies, verify=False)
+                response = session.post(f"{self.url}{AUTHENTICATION_USERPASS_PATH}/{username}", json=auth_data)
                 return self._extract_client_token(session, response, authentication_method)
             except:
                 self.logger.console_logger.debug(f"Error while authenticating with authentication method {authentication_method}")
@@ -56,7 +56,7 @@ class HashicorpVaultSecretServer(SecretServer):
             session.headers["Content-Type"] = "application/json"
             response = {}
             try:
-                response = session.post(f"{self.url}{AUTHENTICATION_APPROLE_PATH}", json=auth_data, proxies=self.proxies, verify=False)
+                response = session.post(f"{self.url}{AUTHENTICATION_APPROLE_PATH}", json=auth_data)
                 return self._extract_client_token(session, response, authentication_method)
             except:
                 self.logger.console_logger.debug(f"Error while authenticating with authentication method {authentication_method}")
@@ -77,7 +77,7 @@ class HashicorpVaultSecretServer(SecretServer):
         # Listing secrets engines
         try:
             session.headers["Content-Type"] = "application/json"
-            response = session.get(f"{self.url}{LISTING_SECRETS_ENGINES_PATH}", proxies=self.proxies, verify=False)
+            response = session.get(f"{self.url}{LISTING_SECRETS_ENGINES_PATH}")
             content_json = response.json()
             if SECRETS_ENGINES_FIELD not in content_json["data"]:
                 self.logger.console_logger.debug("No secret engines found, empty list will be returned")
@@ -116,10 +116,10 @@ class HashicorpVaultSecretServer(SecretServer):
         res = {}
         if engine_type == SECRET_ENGINE_CUBBYHOLE or engine_type == SECRET_ENGINE_KVV1:
             # LIST $VAULT_ADDR/v1/{engine_path}/ ( kvv1, cuubyhole )
-            res = session.request("LIST", f"{self.url}{API_V1}/{engine_path}{current_local_path}", proxies=self.proxies)
+            res = session.request("LIST", f"{self.url}{API_V1}/{engine_path}{current_local_path}")
         elif engine_type == SECRET_ENGINE_KVV2:
             # LIST $VAULT_ADDR/v1/{engine_path}/metadata/ ( kvv2 )
-            res = session.request("LIST", f"{self.url}{API_V1}/{engine_path}metadata/{current_local_path}", proxies=self.proxies)
+            res = session.request("LIST", f"{self.url}{API_V1}/{engine_path}metadata/{current_local_path}")
         if res.status_code == 200:
             new_secrets_list = res.json()["data"]["keys"]
 

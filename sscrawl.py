@@ -7,9 +7,7 @@ import requests
 import os
 import urllib3
 import logging
-import threading
 import numpy as np
-import copy
 from secret_servers.authentication_method_not_supported_exception import AuthenticationMethodNotSupportedException
 from secret_servers.get_secrets_thread import GetSecretsThread
 from secret_servers.hashicorp_vault.hashicorp_vault_secret_server import HashicorpVaultSecretServer
@@ -30,13 +28,17 @@ except AttributeError:
     # no pyopenssl support used / needed / available
     pass
 
-def get_secrets(domain: str, username: str, password: str, is_hash: bool, out_folder: str, out_file: str, node: SSNode, found_history: set, recursive: bool, thread_count: int, secret_server: SecretServer):
+def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, str]',
+                is_hash: bool, is_secure: bool,  out_folder: str, out_file: str, node: SSNode, 
+                found_history: set, recursive: bool, thread_count: int, secret_server: SecretServer):
     logger.console_logger.info(f"------ {username}")
     secret_lines_output: 'list[list[str]]' = []
     found_children = []
     for auth_method in secret_server.authentication_methods:
         session = requests.Session()
         session.headers.update({"User-Agent":"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"})
+        session.proxies = proxies
+        session.verify = is_secure
         auth_success = False
         try:
             logger.console_logger.info(f"Attempting to login with {username} with authentication method {auth_method}")
@@ -110,7 +112,8 @@ def get_secrets(domain: str, username: str, password: str, is_hash: bool, out_fo
             d = GLOBAL_DOMAIN
             if child.domain:
                 d = child.domain
-            get_secrets(d, child.username, child.password, False, out_folder, out_file, child, found_history, recursive, thread_count, secret_server)
+            get_secrets(d, child.username, child.password, proxies, False, is_secure, out_folder, out_file, child, 
+                        found_history, recursive, thread_count, secret_server)
 
 def node_name(node: SSNode, parentId: str):
     return f"{parentId}{node.id}"
@@ -183,12 +186,13 @@ parser.add_argument("-o", "--out", help=f"The output secret file name, default {
 parser.add_argument("-O", "--outfolder", help=f"The output folder where to write files, default {DEFAULT_SSCRAWL_OUT_FOLDER}", required=False, type=str, default=DEFAULT_SSCRAWL_OUT_FOLDER)
 parser.add_argument("-c", "--pagesize", help="The number of secrets per page, default 100, when relevant", required=False, type=int, default=100)
 parser.add_argument("-v", "--verbose", help="Increases output verbosity", action="store_true")
-parser.add_argument("-P", "--proxy", help="Passes the connections through http://localhost:8080", action="store_true")
+parser.add_argument("-P", "--proxy", help="Passes the connections through the provided proxy", required=False)
 parser.add_argument("-r", "--recursive", help="The script will recursively try found username/password combinations to find more secrets", default=False, action="store_true")
 parser.add_argument("-g", "--graph", help="Graph the found credentials to represent the links between them", default=False, action="store_true")
 parser.add_argument("-G", "--graphfile", help=f"The graph file name, default {DEFAULT_GRAPH_OUT}", required=False, type=str, default=DEFAULT_GRAPH_OUT)
 parser.add_argument("-t", "--threads", help=f"The amount of threads with which to query the server, defaults to {DEFAULT_THREADS}", required=False, type=int, default=DEFAULT_THREADS)
 parser.add_argument("-H", "--hash", help=f"The ntlm hash to perform a pass the hash attack on the authentication, when supported", required=False, type=str)
+parser.add_argument("-k", "--insecure", help=f"Skip tls host validation when negotiating tls", required=False, action="store_false")
 
 parser.add_argument("-n", "--noalreadyfound", help=f"Do not show in the graph the secrets that were already found", required=False, action="store_false")
 parser.add_argument("-N", "--noaccessdenied", help=f"Do not show in the graph the secrets for which the access was denied", required=False, action="store_false")
@@ -216,9 +220,15 @@ logger = SSCrawlLogger(l, args.verbose, out_file, args.outfolder)
 for arg in args._get_kwargs():
     logger.console_logger.debug(f"{arg[0].ljust(16, ' ')}: {arg[1]}")
 
+
 proxies={}
-if args.proxy:
-    proxies={'http':'http://127.0.0.1:8080', 'https':'http://127.0.0.1:8080'}
+if args.proxy is not None:
+    parsed = urllib3.util.parse_url(args.proxy)
+    if all([parsed.scheme, parsed.host]):
+        proxies={'http': args.proxy, 'https': args.proxy}
+    else:
+        logger.console_logger.error("Invalid proxy url provided, please validate.")
+        exit(1)
 
 if not args.pwd and not args.hash:
     logger.console_logger.error("At least --pwd or --hash must be provided")
@@ -236,15 +246,17 @@ root_node.password = args.pwd
 found_history = set()
 
 if args.server == DELINEA_SERVER:
-    ss = ThycoticSecretServer(logger, proxies, args.url, args.pagesize)
+    ss = ThycoticSecretServer(logger, args.url, args.pagesize)
 elif args.server == HASHICORP_SERVER:
-    ss = HashicorpVaultSecretServer(logger, proxies, args.url)
+    ss = HashicorpVaultSecretServer(logger, args.url)
 else:
     exit()
 
 GLOBAL_DOMAIN = args.domain
 
-get_secrets(args.domain, args.user, pwd, is_hash, args.outfolder, out_file, root_node, found_history, args.recursive, args.threads, ss)
+get_secrets(args.domain, args.user, pwd, proxies, 
+            is_hash, args.insecure, args.outfolder, out_file, root_node, 
+            found_history, args.recursive, args.threads, ss)
 
 if args.graph:
     print("\nGraph legend:\nRed    : Access denied\nBlue   : Already found\nGreen  : Is a file\nOrange : No credentials found in secret, investigate")

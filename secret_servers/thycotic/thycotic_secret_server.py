@@ -18,8 +18,8 @@ AUTHENTICATION_METHOD_NTLM = 'ntlm'
 NTLM_PATH = '/winauthwebservices'
 
 class ThycoticSecretServer(SecretServer):
-    def __init__(self, logger: SSCrawlLogger, proxies, url: str, page_size: int):
-        super().__init__(logger, proxies, url)
+    def __init__(self, logger: SSCrawlLogger, url: str, page_size: int):
+        super().__init__(logger, url)
         self.page_size = page_size
         self.authentication_methods = [AUTHENTICATION_METHOD_BEARER, AUTHENTICATION_METHOD_NTLM]
 
@@ -34,11 +34,11 @@ class ThycoticSecretServer(SecretServer):
             authenticationPost = {"password": password,"grant_type":"password","username": username}
             if domain:
                 authenticationPost["username"] = f"{domain}\\{username}"
-            response = session.post(f"{self.url}{AUTH_PATH}", data=authenticationPost, verify=False, proxies=self.proxies)
+            response = session.post(f"{self.url}{AUTH_PATH}", data=authenticationPost)
             if "access_token" not in response.json():
                 self.logger.console_logger.debug(f"User {domain}\\{username} could not authenticate to {self.url}, retrying without domain")
                 authenticationPost["username"] = username
-                response = session.post(f"{self.url}{AUTH_PATH}", data=authenticationPost, verify=False, proxies=self.proxies)
+                response = session.post(f"{self.url}{AUTH_PATH}", data=authenticationPost)
                 if "access_token" not in response.json():
                     self.logger.console_logger.debug(f"User {username} could not authenticate")
                     return False
@@ -55,7 +55,7 @@ class ThycoticSecretServer(SecretServer):
             if not is_hash:
                 hash = hashlib.new('md4', password.encode('utf-16le')).hexdigest()
             session.auth = HttpNtlmAuth(u, "0" * 32 + ":" + hash)
-            response = session.get(ntlm_url, verify=False, proxies=self.proxies)
+            response = session.get(ntlm_url)
             if response.status_code != 200:
                 return False
             return True
@@ -75,7 +75,7 @@ class ThycoticSecretServer(SecretServer):
         items_per_page = self.page_size
         secrets_ids = []
 
-        response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}", verify=False, proxies=self.proxies)
+        response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}")
         page_count = response.json()["pageCount"]
 
         self.logger.console_logger.info(f"Found {response.json()['total']} secrets for user, listing...")
@@ -85,7 +85,7 @@ class ThycoticSecretServer(SecretServer):
         if page_count > 1:
             for i in range(1, page_count):
                 skip = i * items_per_page
-                response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}", verify=False, proxies=self.proxies)
+                response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}")
                 self._add_secrets(response.json()["records"], secrets_ids)
 
         return secrets_ids
@@ -100,7 +100,7 @@ class ThycoticSecretServer(SecretServer):
         # Get secret details :
         # GET /api/v1/secrets/{secretId}
         for secret in secret_items:
-            response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}", verify=False, proxies=self.proxies)
+            response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}")
             if response.status_code == 401 or ('errorCode' in response.json() and response.json()["errorCode"] == "API_AccessDenied"):
                 self.logger.console_logger.debug(f"Access denied for secret id {secret.unique_id}")
                 new_node = SSNode(secret.unique_id)
@@ -124,7 +124,7 @@ class ThycoticSecretServer(SecretServer):
                     if not new_node.already_found:
                         # Get secret fields values :
                         # GET /api/v1/secrets/{secretId}/fields/{slug}
-                        file_content_res = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}/fields/{item['slug']}", verify=False, proxies=self.proxies)
+                        file_content_res = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}/fields/{item['slug']}")
                         self.logger.log_secret_file(out_file_name, file_content_res.content)
 
                         secret_lines_output.append(self.logger.get_secret_log_line([str(response_json['id']), response_json['name'], item['fieldName'], out_file_name, item['fieldDescription']]))
