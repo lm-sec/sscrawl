@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# AUTHOR: gh0st@nemesis.sh
+
+LINTER=$(which pylama)
+
+echo "[*] Pre-commit linting underway ..."
+
+if [[ -z $LINTER ]]; then
+	echo "[!] Could not find a pylama installation, please validate."
+	echo "[?] To install: pip install pylama."
+	exit 1
+fi
+
+pylama --max-line-length 120 --linters pyflakes

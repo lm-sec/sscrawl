@@ -101,7 +101,7 @@ class HashicorpVaultSecretServer(SecretServer):
                 if key == IDENTITY_ROUTE or key == SYS_ROUTE:
                     continue
                 engine_routes.append(key)
-        except Exception as e:
+        except:
             self.logger.console_logger.debug("Error while listing secrets engines, empty list will be returned")
             if response.content:
                 self.logger.console_logger.debug(str(response.content))
