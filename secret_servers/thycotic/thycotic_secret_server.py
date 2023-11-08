@@ -27,8 +27,8 @@ class ThycoticSecretServer(SecretServer):
                         session: requests.Session, authentication_method: str, is_hash: bool) -> bool:
         if authentication_method != AUTHENTICATION_METHOD_NTLM and is_hash:
             self.logger.console_logger.debug(
-                f"A hash was given, but the authentication method {authentication_method} \
-                does not support pass the hash, skipping.")
+                "A hash was given, but the authentication method " +
+                f"{authentication_method} does not support pass the hash, skipping.")
             return False
 
         if authentication_method == AUTHENTICATION_METHOD_BEARER:
@@ -78,10 +78,11 @@ class ThycoticSecretServer(SecretServer):
         skip = 0
         items_per_page = self.page_size
         secrets_ids = []
+        secrets_endpoint_url = self.url + url_auth_method + SECRETS_PATH
+        query = "?filter.searchText=&filter.isExactMatch=false&take="
 
         response = session.get(
-            f"{self.url}{url_auth_method}{SECRETS_PATH}\
-                ?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}")
+            f"{secrets_endpoint_url}{query}{items_per_page}&skip={skip}")
         page_count = response.json()["pageCount"]
 
         self.logger.console_logger.info(f"Found {response.json()['total']} secrets for user, listing...")
@@ -92,8 +93,7 @@ class ThycoticSecretServer(SecretServer):
             for i in range(1, page_count):
                 skip = i * items_per_page
                 response = session.get(
-                    f"{self.url}{url_auth_method}{SECRETS_PATH}\
-                        ?filter.searchText=&filter.isExactMatch=false&take={items_per_page}&skip={skip}")
+                    f"{secrets_endpoint_url}{query}{items_per_page}&skip={skip}")
                 self._add_secrets(response.json()["records"], secrets_ids)
 
         return secrets_ids

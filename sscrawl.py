@@ -123,8 +123,8 @@ def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, s
                 child_data += f" File Name: {child.file_name}"
 
             logger.console_logger.debug(
-                f"Found secret ID {child.readable_id}\
-                  {child_data if len(child_data) > len(child_data_separator) else ''}")
+                f"Found secret ID {child.readable_id}" +
+                f"{child_data if len(child_data) > len(child_data_separator) else ''}")
 
     read_secret_count = 0
     for child in node.children:
