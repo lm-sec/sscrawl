@@ -15,16 +15,16 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Updating packages
-        run: apt update
+        run: sudo apt update
 
       - name: Installing docker
-        run: apt install docker-ce docker-ce-cli -y
+        run: sudo apt install docker-ce docker-ce-cli -y
 
       - name: Installing python3
-        run: apt install python3 -y
+        run: sudo apt install python3 -y
 
       - name: Installing java and graphviz
-        run: apt install default-jre graphviz -y
+        run: sudo apt install default-jre graphviz -y
 
       - name: Starting test shell script
         run: |-
