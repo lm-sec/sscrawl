@@ -31,8 +31,8 @@ except AttributeError:
 DEFAULT_THREADS = 10
 DEFAULT_SSCRAWL_OUT = "sscrawl_secrets.out"
 DEFAULT_SSCRAWL_OUT_FOLDER = "sscrawl_files"
-DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 \
-                     (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"
+DEFAULT_USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36"
+                     "(KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36")
 DEFAULT_GRAPH_OUT = "graph.plantuml"
 GRAPH_LEGEND = """\
 Graph legend:
@@ -279,15 +279,15 @@ if __name__ == "__main__":
     out_file = args.out
     graph_file = args.graphfile
 
-    logger = SSCrawlLogger(
-        logging.getLogger('SSCrawl'),
-        args.verbose, out_file, args.outfolder)
-
     if args.out == DEFAULT_SSCRAWL_OUT:
         out_file = os.path.join(args.outfolder, args.out)
 
     if args.graphfile == DEFAULT_GRAPH_OUT:
         graph_file = os.path.join(args.outfolder, args.graphfile)
+
+    logger = SSCrawlLogger(
+        logging.getLogger('SSCrawl'),
+        args.verbose, out_file, args.outfolder)
 
     proxies = {}
     if args.proxy is not None:
@@ -330,5 +330,5 @@ if __name__ == "__main__":
                 found_history, args.recursive, args.threads, ss)
 
     if args.graph:
-        print("")
+        print(GRAPH_LEGEND)
         generate_graph(root_node, graph_file, args.noalreadyfound, args.noaccessdenied)
