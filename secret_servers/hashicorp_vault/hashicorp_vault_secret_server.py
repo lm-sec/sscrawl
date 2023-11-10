@@ -55,7 +55,7 @@ class HashicorpVaultSecretServer(SecretServer):
             # curl --request POST --data @appserver01_login.json $VAULT_ADDR/v1/auth/approle/login | jq
             if not Utils.is_valid_uuid(username):
                 self.logger.console_logger.debug(
-                    "The client_id is not in the form of a UUID."
+                    "The client_id is not in the form of a UUID. "
                     "It is unexpected for the approle login method. Skipping.")
                 return False
 
