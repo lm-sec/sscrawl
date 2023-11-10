@@ -1,5 +1,5 @@
 class SSNode:
-    def __init__(self, id: str, isRoot = False):
+    def __init__(self, id: str, isRoot=False):
         self.is_root = isRoot
         self.id = self.plantuml_encode(id)
         self.readable_id = id
@@ -16,5 +16,5 @@ class SSNode:
     def plantuml_encode(self, string: str) -> str:
         if not isinstance(string, str):
             string = str(string)
-            
+
         return string.replace("/", "_slash_")

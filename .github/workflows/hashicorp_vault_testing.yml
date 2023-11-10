@@ -27,7 +27,7 @@ jobs:
       - name: Installing java and graphviz
         run: sudo apt install default-jre graphviz -y
 
-      - name: Starting the hashicorp vault container
+      - name: Starting the HashiCorp Vault container
         run: |-
           cd ./.github/workflows/hashicorp_vault_testing/
           docker compose up --detach;
@@ -36,7 +36,7 @@ jobs:
       - name: Coffee Break ☕
         run: sleep 15
 
-      - name: Starting test shell script
+      - name: Running sscrawl on HashiCorp Vault
         run: |-
           python3 sscrawl.py --url "http://127.0.0.1:8200" --server 'hashicorp' --insecure --user 'aafab6b2-4de6-b72f-d8b2-e7c95d1d162a' --pwd '75091e8c-0c11-510e-b1e3-e87ddd50c27c' --recursive --graph --verbose
 
@@ -53,9 +53,22 @@ jobs:
           java -Djava.awt.headless=true -jar plantuml.jar sscrawl_files/graph.plantuml -svg
 
       - name: Upload graph image
-        id: upload
         uses: actions/upload-artifact@v3.1.2
         with:
           name: graph.svg
           path: ./sscrawl_files/graph.svg
+          if-no-files-found: error
+
+      - name: Upload graph plantuml file
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: graph.plantuml
+          path: ./sscrawl_files/graph.plantuml
+          if-no-files-found: error
+
+      - name: Upload the secrets output file
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: sscrawl_secrets.out
+          path: ./sscrawl_files/sscrawl_secrets.out
           if-no-files-found: error
