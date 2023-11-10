@@ -22,7 +22,7 @@ jobs:
 
       - name: Installing python3
         run: -|
-          sudo apt install python3 python3-pip -y
+          sudo apt install python3 python3-pip -y;
           pip3 install numpy
 
       - name: Installing java and graphviz
@@ -34,14 +34,14 @@ jobs:
 
       - name: Output content to stdout
         run: |-
-          echo '[+] Found Secrets'
-          cat sscrawl_files/sscrawl_secrets.out
-          echo '[+] Graph PlantUML File'
+          echo '[+] Found Secrets';
+          cat sscrawl_files/sscrawl_secrets.out;
+          echo '[+] Graph PlantUML File';
           cat sscrawl_files/graph.plantuml
 
       - name: Generate the plantuml graph with PlantUML server
         run: |-
-          curl -L https://github.com/plantuml/plantuml/releases/download/v1.2023.12/plantuml.jar --output plantuml.jar
+          curl -L https://github.com/plantuml/plantuml/releases/download/v1.2023.12/plantuml.jar --output plantuml.jar;
           java -Djava.awt.headless=true -jar plantuml.jar sscrawl_files/graph.plantuml -svg
 
       - name: Upload graph image
