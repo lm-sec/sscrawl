@@ -1,0 +1,5 @@
+services:
+  vault: 
+    build: "./vault/"
+    ports:
+      - "8200:8200"
