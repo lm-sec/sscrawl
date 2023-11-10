@@ -35,6 +35,9 @@ jobs:
           docker compose up --detach;
           cd $GITHUB_WORKSPACE;
 
+      - name: Coffee Break ☕
+        run: sleep 15
+
       - name: Starting test shell script
         run: |-
           python3 sscrawl.py --url "http://127.0.0.1:8200" --server 'hashicorp' --insecure --user 'aafab6b2-4de6-b72f-d8b2-e7c95d1d162a' --pwd '75091e8c-0c11-510e-b1e3-e87ddd50c27c' --recursive --graph --verbose
