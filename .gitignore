@@ -2,3 +2,6 @@
 *.pyc
 __pycache__/
 sscrawl_files/
+*.jar
+*.png
+*.svg
