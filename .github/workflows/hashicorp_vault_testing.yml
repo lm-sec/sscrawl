@@ -31,9 +31,9 @@ jobs:
 
       - name: Starting the hashicorp vault container
         run: |-
-          pwd;
-          ls -la;
-          docker compose up --detach
+          cd ./.github/workflows/hashicorp_vault_testing/
+          docker compose up --detach;
+          cd $GITHUB_WORKSPACE;
 
       - name: Starting test shell script
         run: |-
@@ -46,7 +46,7 @@ jobs:
           echo '[+] Graph PlantUML File';
           cat sscrawl_files/graph.plantuml
 
-      - name: Generate the plantuml graph with PlantUML server
+      - name: Generate the UML graph with PlantUML
         run: |-
           curl -L https://github.com/plantuml/plantuml/releases/download/v1.2023.12/plantuml.jar --output plantuml.jar;
           java -Djava.awt.headless=true -jar plantuml.jar sscrawl_files/graph.plantuml -svg
