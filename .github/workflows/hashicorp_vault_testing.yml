@@ -1,0 +1,61 @@
+---
+name: Hashicorp Vault Testing
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Hashicorp Vault Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Updating packages
+        run: sudo apt update
+
+      - name: Installing docker
+        run: sudo apt install docker-ce docker-ce-cli -y
+
+      - name: Installing python3
+        run: -|
+          sudo apt install python3 python3-pip -y;
+          pip3 install numpy;
+          pip3 install requests-ntlm;
+
+      - name: Installing java and graphviz
+        run: sudo apt install default-jre graphviz -y
+
+      - name: Starting the hashicorp vault container
+        run: |-
+          cd ./.github/workflows/hashicorp_vault_testing/
+          docker compose up --detach;
+          cd $GITHUB_WORKSPACE;
+
+      - name: Coffee Break ☕
+        run: sleep 15
+
+      - name: Starting test shell script
+        run: |-
+          python3 sscrawl.py --url "http://127.0.0.1:8200" --server 'hashicorp' --insecure --user 'aafab6b2-4de6-b72f-d8b2-e7c95d1d162a' --pwd '75091e8c-0c11-510e-b1e3-e87ddd50c27c' --recursive --graph --verbose
+
+      - name: Output content to stdout
+        run: |-
+          echo '[+] Found Secrets';
+          cat sscrawl_files/sscrawl_secrets.out;
+          echo '[+] Graph PlantUML File';
+          cat sscrawl_files/graph.plantuml
+
+      - name: Generate the UML graph with PlantUML
+        run: |-
+          curl -L https://github.com/plantuml/plantuml/releases/download/v1.2023.12/plantuml.jar --output plantuml.jar;
+          java -Djava.awt.headless=true -jar plantuml.jar sscrawl_files/graph.plantuml -svg
+
+      - name: Upload graph image
+        id: upload
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: graph.svg
+          path: ./sscrawl_files/graph.svg
+          if-no-files-found: error
