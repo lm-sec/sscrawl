@@ -1,4 +1,5 @@
 import requests
+from secret_servers.nodes_list import NodesList
 
 from utils.utils import Utils
 from utils.sscrawl_logger import SSCrawlLogger
@@ -146,25 +147,20 @@ class HashicorpVaultSecretServer(SecretServer):
                 else:
                     secrets_list.append(HashicorpSecretListItem(engine_type, engine_path, current_local_path + secret))
 
-    def get_secrets_threaded(self, secret_items: 'list[HashicorpSecretListItem]', found_secrets_list: 'list[SSNode]',
-                             session: requests.Session, found_ids_history: set, secret_lines_output: 'list[str]',
+    def get_secrets_threaded(self, secret_items: 'list[HashicorpSecretListItem]', found_secrets_list: 'NodesList',
+                             session: requests.Session, secret_lines_output: 'list[str]',
                              authentication_method: str):
         """Get a key/value or cubbyhole secret from the vault"""
         for secret in secret_items:
             # As hashicorp vault is fully path based, the id represents the full path to the secret
             response = session.get(f"{self.url}{API_V1}{secret.unique_id}")
             if response.status_code == 403 or response.status_code == 401:
-                self.logger.console_logger.debug(f"Access denied for secret id {secret.unique_id}")
                 new_node = SSNode(secret.unique_id)
                 new_node.got_denied = True
                 found_secrets_list.append(new_node)
                 continue
 
             new_node = SSNode(secret.unique_id)
-            if secret.unique_id in found_ids_history:
-                new_node.already_found = True
-
-            found_ids_history.add(secret.unique_id)
             response_json = response.json()
 
             data_dict = \
