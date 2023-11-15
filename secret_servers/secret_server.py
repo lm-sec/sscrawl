@@ -1,8 +1,8 @@
 import requests
 from abc import ABCMeta, abstractmethod
+from secret_servers.nodes_list import NodesList
 
 from utils.sscrawl_logger import SSCrawlLogger
-from secret_servers.secret_server_node import SSNode
 from secret_servers.secret_list_item import SecretListItem
 
 
@@ -25,7 +25,7 @@ class SecretServer(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_secrets_threaded(self, secret_items: 'list[SecretListItem]', found_secrets_list: 'list[SSNode]',
-                             session: requests.Session, found_ids_history: set, secret_lines_output: 'list[str]',
+    def get_secrets_threaded(self, secret_items: 'list[SecretListItem]', found_secrets_list: 'NodesList',
+                             session: requests.Session, secret_lines_output: 'list[str]',
                              authentication_method: str):
         pass

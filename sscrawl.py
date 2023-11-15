@@ -8,6 +8,7 @@ import requests
 import argparse
 import numpy as np
 from io import TextIOWrapper
+from secret_servers.nodes_list import NodesList
 
 from utils.sscrawl_logger import SSCrawlLogger
 from utils.argparse_help_formatter import SortingHelpFormatter
@@ -90,12 +91,12 @@ def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, s
         get_secrets_threads: 'list[GetSecretsThread]' = []
         for i in range(thread_count):
             if len(secrets_list[i]) > 0:
-                found_children.append(list())
+                found_children.append(NodesList(found_history, logger))
                 secret_lines_output.append(list())
                 get_secrets_threads.append(
                     GetSecretsThread(secrets_list[i], found_children[len(found_children) - 1],
                                      session, secret_lines_output[len(secret_lines_output) - 1],
-                                     secret_server, found_history, auth_method))
+                                     secret_server, auth_method))
                 get_secrets_threads[len(get_secrets_threads) - 1].start()
 
         for t in get_secrets_threads:
@@ -108,23 +109,6 @@ def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, s
 
     for children_list in found_children:
         node.children.extend(children_list)
-
-    if logger.verbose:
-        for child in node.children:
-            child_data_separator = " :"
-            child_data = child_data_separator
-            if child.already_found:
-                child_data += " (Already found)"
-            if child.username:
-                child_data += f" Username: {child.username}"
-            if child.password:
-                child_data += f" Password: {child.password}"
-            if child.file_name:
-                child_data += f" File Name: {child.file_name}"
-
-            logger.console_logger.debug(
-                f"Found secret ID {child.readable_id}" +
-                f"{child_data if len(child_data) > len(child_data_separator) else ''}")
 
     read_secret_count = 0
     for child in node.children:

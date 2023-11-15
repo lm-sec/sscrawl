@@ -2,6 +2,7 @@ import re
 import hashlib
 import requests
 from requests_ntlm import HttpNtlmAuth
+from secret_servers.nodes_list import NodesList
 
 from utils.utils import Utils
 from utils.sscrawl_logger import SSCrawlLogger
@@ -98,18 +99,18 @@ class ThycoticSecretServer(SecretServer):
 
         return secrets_ids
 
-    def get_secrets_threaded(self, secret_items: 'list[SecretListItem]', found_secrets_list: 'list[SSNode]',
-                             session: requests.Session, found_ids_history: set, secret_lines_output: 'list[str]',
+    def get_secrets_threaded(self, secret_items: 'list[SecretListItem]', found_secrets_list: NodesList,
+                             session: requests.Session, secret_lines_output: 'list[str]',
                              authentication_method: str):
         if authentication_method == AUTHENTICATION_METHOD_BEARER:
             self._get_secrets_threaded(secret_items, found_secrets_list, session,
-                                       found_ids_history, secret_lines_output, API_PATH)
+                                       secret_lines_output, API_PATH)
         elif authentication_method == AUTHENTICATION_METHOD_NTLM:
             self._get_secrets_threaded(secret_items, found_secrets_list, session,
-                                       found_ids_history, secret_lines_output, NTLM_PATH + API_PATH)
+                                       secret_lines_output, NTLM_PATH + API_PATH)
 
     def _get_secrets_threaded(self, secret_items: 'list[SecretListItem]', found_secrets_list: 'list[SSNode]',
-                              session: requests.Session, found_ids_history: set, secret_lines_output: 'list[str]',
+                              session: requests.Session, secret_lines_output: 'list[str]',
                               url_auth_method: str):
         # Get secret details :
         # GET /api/v1/secrets/{secretId}
@@ -117,17 +118,13 @@ class ThycoticSecretServer(SecretServer):
             response = session.get(f"{self.url}{url_auth_method}{SECRETS_PATH}/{secret.unique_id}")
             if response.status_code == 401 or \
                     ('errorCode' in response.json() and response.json()["errorCode"] == "API_AccessDenied"):
-                self.logger.console_logger.debug(f"Access denied for secret id {secret.unique_id}")
                 new_node = SSNode(secret.unique_id)
                 new_node.got_denied = True
                 found_secrets_list.append(new_node)
                 continue
 
             new_node = SSNode(secret.unique_id)
-            if secret.unique_id in found_ids_history:
-                new_node.already_found = True
 
-            found_ids_history.add(secret.unique_id)
             response_json = response.json()
             name = response_json["name"]
 
