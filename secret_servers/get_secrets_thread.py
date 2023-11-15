@@ -3,7 +3,6 @@ import requests
 from secret_servers.nodes_list import NodesList
 
 from secret_servers.secret_server import SecretServer
-from secret_servers.secret_server_node import SSNode
 
 
 class GetSecretsThread(threading.Thread):

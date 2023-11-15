@@ -1,4 +1,3 @@
-from secret_servers.secret_list_item import SecretListItem
 from secret_servers.secret_server_node import SSNode
 from utils.sscrawl_logger import SSCrawlLogger
 
@@ -18,6 +17,7 @@ class NodesList(list):
         super().__init__()
 
     def append(self, secret: SSNode):
+        """Append a SSNode to the list. Also logs to the command line that a new secret was found."""
         if secret.id in self.found_ids_history:
             secret.already_found = True
         else:

@@ -3,7 +3,6 @@ from abc import ABCMeta, abstractmethod
 from secret_servers.nodes_list import NodesList
 
 from utils.sscrawl_logger import SSCrawlLogger
-from secret_servers.secret_server_node import SSNode
 from secret_servers.secret_list_item import SecretListItem
 
 
