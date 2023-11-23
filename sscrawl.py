@@ -50,6 +50,12 @@ SUPPORTED_SERVERS = [DELINEA_SERVER, HASHICORP_SERVER]
 LOGGING_FORMAT = '[%(asctime)s] %(levelname)-7s: %(message)s'
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+def create_requests_session(proxies, is_secure):
+    session = requests.Session()
+    session.headers.update({"User-Agent": DEFAULT_USER_AGENT})
+    session.proxies = proxies
+    session.verify = is_secure
+    return session
 
 def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, str]',
                 is_hash: bool, is_secure: bool,  out_folder: str, out_file: str, node: SSNode,
@@ -58,10 +64,8 @@ def get_secrets(domain: str, username: str, password: str, proxies: 'dict[str, s
     secret_lines_output: 'list[list[str]]' = []
     found_children = []
     for auth_method in secret_server.authentication_methods:
-        session = requests.Session()
-        session.headers.update({"User-Agent": DEFAULT_USER_AGENT})
-        session.proxies = proxies
-        session.verify = is_secure
+        session = create_requests_session(proxies, is_secure)
+
         auth_success = False
         try:
             logger.console_logger.info(
@@ -308,6 +312,19 @@ if __name__ == "__main__":
 
     for arg in args._get_kwargs():
         logger.console_logger.debug(f"{arg[0].ljust(16, ' ')}: {arg[1]}")
+
+    # Testing connection to the server
+    sess = create_requests_session(proxies, args.insecure)
+    try:
+        sess.get(ss.url, timeout=5)
+    except requests.ConnectionError as err:
+        print("Unable to connect to the secret server")
+        print(err)
+        exit(1)
+    except Exception as err:
+        print("Unknown error while testing the connection to the secret server")
+        print(err)
+        exit(1)
 
     get_secrets(args.domain, args.user, pwd, proxies,
                 is_hash, args.insecure, args.outfolder, out_file, root_node,
