@@ -1,5 +1,4 @@
 import re
-import hashlib
 import requests
 from requests_ntlm import HttpNtlmAuth
 from secret_servers.nodes_list import NodesList
@@ -9,6 +8,7 @@ from utils.sscrawl_logger import SSCrawlLogger
 from secret_servers.secret_server_node import SSNode
 from secret_servers.secret_server import SecretServer
 from secret_servers.secret_server import SecretListItem
+from utils.md4 import MD4
 
 AUTH_PATH = "/oauth2/token"
 API_PATH = "/api"
@@ -59,7 +59,7 @@ class ThycoticSecretServer(SecretServer):
             ntlm_url = self.url + NTLM_PATH + '/sswinauthwebservice.asmx'
             hash = password
             if not is_hash:
-                hash = hashlib.new('md4', password.encode('utf-16le')).hexdigest()
+                hash = MD4(password.encode('utf-16le')).hexdigest()
             session.auth = HttpNtlmAuth(u, "0" * 32 + ":" + hash)
             response = session.get(ntlm_url)
             if response.status_code != 200:
